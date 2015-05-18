@@ -7,7 +7,7 @@ class FakeVolume(object):
         pass
 
     def attach(self):
-        pass
+        return 202
 
     def detach(self):
         return 202

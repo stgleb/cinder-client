@@ -29,12 +29,13 @@ def main():
     cinder_client = CinderClient(client)
     vol_id = cinder_client.create_volume('test_vol2', size=1)
 
-    response = cinder_client.attach_volume(volume_id=vol_id,
-                                vm_id="6cdfe757-584c-4a9f-a356-bf2213167d7c")
-    response = cinder_client.detach_volume(volume_id=vol_id)
+    # response = cinder_client.attach_volume(volume_id=vol_id,
+    #                             vm_id="6cdfe757-584c-4a9f-a356-bf2213167d7c")
+    # response = cinder_client.detach_volume(volume_id=vol_id)
 
-    print cinder_client.delete_volume(volume_id=vol_id)
+    # print cinder_client.delete_volume(volume_id=vol_id)
 
 
 if __name__ == '__main__':
     main()
+

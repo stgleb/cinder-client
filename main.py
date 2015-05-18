@@ -1,11 +1,8 @@
 import argparse
 import sys
 
-from cinder_api import attach_volume
-from cinder_api import create_volume
-from cinder_api import delete_volume
-from cinder_api import detach_volume
-from cinderclient.v1 import client
+from cinderclient.v1 import Client
+from cinder_api import CinderClient
 
 
 def parse_args(argv):
@@ -25,17 +22,18 @@ def parse_args(argv):
 
 def main():
     arg_obj = parse_args(sys.argv[1:])
-    cinder_client = client.Client(arg_obj.username, arg_obj.password,
-                                  arg_obj.tenant, arg_obj.auth_url,
-                                  service_type="volume")
-    vol_id = create_volume(cinder_client,
-                           'test_vol', 1)
+    client = Client(arg_obj.username, arg_obj.password,
+                    arg_obj.tenant, arg_obj.auth_url,
+                    service_type="volume")
 
-    attach_volume(cinder_client, volume_id=vol_id,
-                  vm_id="6cdfe757-584c-4a9f-a356-bf2213167d7c")
-    detach_volume(cinder_client, volume_id=vol_id)
+    cinder_client = CinderClient(client)
+    vol_id = cinder_client.create_volume('test_vol2', size=1)
 
-    print delete_volume(cinder_client, volume_id=vol_id)
+    response = cinder_client.attach_volume(volume_id=vol_id,
+                                vm_id="6cdfe757-584c-4a9f-a356-bf2213167d7c")
+    response = cinder_client.detach_volume(volume_id=vol_id)
+
+    print cinder_client.delete_volume(volume_id=vol_id)
 
 
 if __name__ == '__main__':

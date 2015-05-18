@@ -40,7 +40,8 @@ class TestCinderClientOpenstack(unittest.TestCase):
                                           flavor=flavor)
         volume = self.cinder_client.volumes.create(display_name="test_volume",
                                                    size=1)
-        self.cinder.attach_volume(volume, server.id, "/dev/vda")
+        self.cinder.attach_volume(volume.display_name, server.id, "/dev/vda")
+        self.cinder.detach_volume(volume.display_name)
         self.cinder_client.volumes.delete(volume=volume)
 
     def test_find_vm(self):

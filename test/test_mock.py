@@ -28,27 +28,37 @@ class TestCinderClientMock(unittest.TestCase):
         client = CinderClient(cinder)
         assert 1 == len(client.find_volume("hello"))
 
-    def test_attach_volume(self):
+    def test_attach_volume_success(self):
         cinder = MagicMock()
         cinder.volumes.list.return_value = [FakeVolume(name="hello"),
                                             FakeVolume(name="world")]
         cinder.volumes.attach.return_value = 202
 
         servers = [FakeServer(name="server1"),
-                                        FakeServer(name="server2"),
-                                        FakeServer(id="4321")]
-
-        with patch.object(CinderClient, 'find_vm', return_value=servers):
-            client = CinderClient(cinder)
-            self.assertRaises(Exception,
-                              client.attach_volume, volume_name="hello",
-                              vm_name="server1")
+                   FakeServer(name="server2"),
+                   FakeServer(id="4321")]
 
         servers = servers[:1]
         with patch.object(CinderClient, 'find_vm', return_value=servers):
             client = CinderClient(cinder)
             response = client.attach_volume(volume_name="hello", vm_name="server1")
             assert response == 202
+
+    def test_attach_volume_failed(self):
+        cinder = MagicMock()
+        cinder.volumes.list.return_value = [FakeVolume(name="hello"),
+                                            FakeVolume(name="world")]
+        cinder.volumes.attach.return_value = 202
+
+        servers = [FakeServer(name="server1"),
+                   FakeServer(name="server2"),
+                   FakeServer(id="4321")]
+
+        with patch.object(CinderClient, 'find_vm', return_value=servers):
+            client = CinderClient(cinder)
+            self.assertRaises(Exception,
+                              client.attach_volume, volume_name="hello",
+                              vm_name="server1")
 
     def test_detach_volume(self):
         cinder = MagicMock()
@@ -72,8 +82,8 @@ class TestCinderClientMock(unittest.TestCase):
                                           FakeServer(name="server2"),
                                           FakeServer(id="4321")]
         client = CinderClient(cinder)
-        assert 1 == len(client.find_vm(nova, vm_name="server2"))
-        assert 1 == len(client.find_vm(nova, vm_id="4321"))
+        assert 1 == len(client._find_vm(nova, vm_name="server2"))
+        assert 1 == len(client._find_vm(nova, vm_id="4321"))
 
 if __name__ == '__main__':
     unittest.main()

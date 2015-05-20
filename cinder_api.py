@@ -1,5 +1,7 @@
 from novaclient.v2 import client as novaclient
 
+import exceptions
+
 
 class CinderClient(object):
 
@@ -10,7 +12,7 @@ class CinderClient(object):
         """Create cinder volume with specified size.
 
             :param name : name of new volume
-            :param size : size of volume in GB.]
+            :param size : size of volume in GB.
             :return : volume id
         """
         new_volume = self.client.\
@@ -38,14 +40,14 @@ class CinderClient(object):
             :param vm_id : id of server
         """
 
-        vms = self.find_vm(self.nova_client_from_cinder(),
-                           vm_name, vm_id)
+        vms = self._find_vm(self._nova_client_from_cinder(),
+                            vm_name, vm_id)
 
         if len(vms) > 1:
-            raise Exception('Multiple servers found, '
-                            'please specify vm_id')
+            raise exceptions.MultipleServersFound('Multiple servers found, '
+                                                  'please specify vm_id')
         elif len(vms) == 0:
-            raise Exception('No servers found')
+            raise exceptions.ServerNotFound('No servers found')
 
         volumes = self.client.volumes.list()
 
@@ -56,10 +58,10 @@ class CinderClient(object):
             volumes = filter(lambda v: v.id == volume_id, volumes)
 
         if len(volumes) > 1:
-            raise Exception('Multiple volumes found, '
-                            'please specify volume_id')
+            raise ('Multiple volumes found, '
+                   'please specify volume_id')
         elif len(volumes) == 0:
-            raise Exception('No volumes found')
+            raise exceptions.VolumeNotFound('No volumes found')
 
         return self.client.volumes.attach(volumes[0], vms[0].id, mount_point)
 
@@ -88,6 +90,9 @@ class CinderClient(object):
         """
         volumes = self.client.volumes.list()
 
+        if volume_id and volume_name:
+            raise ValueError("Too many arguments has been passed")
+
         if volume_id:
             volumes = filter(lambda v: v.id == volume_id, volumes)
         else:
@@ -96,10 +101,7 @@ class CinderClient(object):
         [v.delete() for v in volumes]
         return [v.id for v in volumes]
 
-    def format_volume(self, vm_name):
-        pass
-
-    def nova_client_from_cinder(self):
+    def _nova_client_from_cinder(self):
         nova = novaclient.Client(
             self.client.client.user,
             self.client.client.password,
@@ -108,7 +110,8 @@ class CinderClient(object):
 
         return nova
 
-    def find_vm(self, nova,  vm_name=None, vm_id=None):
+    @staticmethod
+    def _find_vm(nova,  vm_name=None, vm_id=None):
         """Search servers by name or id.
 
             :param vm_name : name of server

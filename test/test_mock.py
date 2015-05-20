@@ -1,7 +1,7 @@
 import unittest
 
-from cinder_api import CinderClient
-from cinder_api_exceptions import MultipleServersFound
+from cinder_client_api.cinder_api import CinderClient
+from cinder_client_api.cinder_api_exceptions import MultipleServersFound
 from mock import Mock
 from mock import patch
 from test.fakes import FakeServer

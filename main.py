@@ -1,8 +1,8 @@
 import argparse
-import cinderclient.v1
 import sys
 
-from cinder_api import CinderClient
+import cinderclient.v1
+from cinder_client_api.cinder_api import CinderClient
 
 
 def parse_args(argv):

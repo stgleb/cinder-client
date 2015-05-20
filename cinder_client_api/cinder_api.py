@@ -1,6 +1,5 @@
+from cinder_client_api import cinder_api_exceptions
 from novaclient.v2 import client as novaclient
-
-import cinder_api_exceptions
 
 
 class CinderClient(object):

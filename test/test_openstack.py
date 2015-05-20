@@ -1,8 +1,9 @@
-import cinder_api
-import cinderclient.v1 as cinderclient
-import novaclient.v2.client as novaclient
 import time
 import unittest
+
+from cinder_client_api import cinder_api
+import cinderclient.v1 as cinderclient
+import novaclient.v2.client as novaclient
 
 
 class TestCinderClientOpenstack(unittest.TestCase):
@@ -48,17 +49,20 @@ class TestCinderClientOpenstack(unittest.TestCase):
         server = self.nova.servers.create(name="test_server",
                                           image=image,
                                           flavor=flavor)
+        #seems to be very dirty hack, waiting some time in hope
+        #that object will get needed state.
+        #should be implemented via requesting object by http.
         time.sleep(10)
         volume = self.cinder_client.volumes.create(display_name=
                                                    "dummy",
                                                    size=1)
-        time.sleep(5)
+        time.sleep(20)
         self.cinder.attach_volume(volume_name=volume.display_name,
                                   vm_id=server.id, mount_point="/dev/vda")
         time.sleep(10)
         self.cinder.detach_volume(volume.display_name)
-        time.sleep(10)
-        self.assertEqual(volume.status, 'available')
+        time.sleep(20)
+        self.assertNotEqual(volume.status, 'in-use')
         self.cinder_client.volumes.delete(volume=volume)
         server.delete()
 

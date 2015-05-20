@@ -1,6 +1,6 @@
 from novaclient.v2 import client as novaclient
 
-import exceptions
+import cinder_api_exceptions
 
 
 class CinderClient(object):
@@ -44,10 +44,10 @@ class CinderClient(object):
                             vm_name, vm_id)
 
         if len(vms) > 1:
-            raise exceptions.MultipleServersFound('Multiple servers found, '
+            raise cinder_api_exceptions.MultipleServersFound('Multiple servers found, '
                                                   'please specify vm_id')
         elif len(vms) == 0:
-            raise exceptions.ServerNotFound('No servers found')
+            raise cinder_api_exceptions.ServerNotFound('No servers found')
 
         volumes = self.client.volumes.list()
 
@@ -58,10 +58,10 @@ class CinderClient(object):
             volumes = filter(lambda v: v.id == volume_id, volumes)
 
         if len(volumes) > 1:
-            raise ('Multiple volumes found, '
-                   'please specify volume_id')
+            raise cinder_api_exceptions.MultipleVolumesFound(
+                'Multiple volumes found, please specify volume_id')
         elif len(volumes) == 0:
-            raise exceptions.VolumeNotFound('No volumes found')
+            raise cinder_api_exceptions.VolumeNotFound('No volumes found')
 
         return self.client.volumes.attach(volumes[0], vms[0].id, mount_point)
 

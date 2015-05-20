@@ -1,12 +1,12 @@
-import unittest
+import cinder_api
+import cinderclient.v1 as cinderclient
+import novaclient.v2.client as novaclient
 import time
-from cinder_api import CinderClient
-from cinderclient.v1 import Client
-from novaclient.v2 import client as novaclient
+import unittest
 
 
 class TestCinderClientOpenstack(unittest.TestCase):
-    """ Testing cinder api with specified Openstack cluster.
+    """Testing cinder api with specified Openstack cluster.
     """
     @classmethod
     def setUpClass(cls):
@@ -17,11 +17,11 @@ class TestCinderClientOpenstack(unittest.TestCase):
         tenant = "admin"
         auth_url = "http://172.16.55.130:5000/v2.0/"
 
-        cinder = Client(username, password,
-                        tenant, auth_url,
-                        service_type="volume")
+        cinder = cinderclient.Client(username, password,
+                                     tenant, auth_url,
+                                     service_type="volume")
         cls.cinder_client = cinder
-        cls.cinder = CinderClient(cinder)
+        cls.cinder = cinder_api.CinderClient(cinder)
         cls.nova = novaclient.Client(username,
                                      password,
                                      tenant,
@@ -30,13 +30,14 @@ class TestCinderClientOpenstack(unittest.TestCase):
     def test_create_delete(self):
         """Create volume, ensure is okay and delete volume.
         """
-        vol_id = self.cinder.create_volume('test_volume', size=1)
-        assert len(vol_id) == 36
+        vol_id = self.cinder.create_volume('test', size=1)
+        self.assertEqual(len(vol_id), 36)
         res = self.cinder.delete_volume(volume_id=vol_id)
-        assert res == [vol_id]
+        self.assertEqual(res, [vol_id])
 
     def test_attach_detach(self):
-        """Create volume and server. Attach, wait 10 sec and detach volume from server.
+        """Create volume and server. Attach, wait 10 sec
+            and detach volume from server.
             Ensure status of volume is not in-use.
         """
         flavors = self.nova.flavors.list()
@@ -47,18 +48,19 @@ class TestCinderClientOpenstack(unittest.TestCase):
         server = self.nova.servers.create(name="test_server",
                                           image=image,
                                           flavor=flavor)
-        volume = self.cinder_client.volumes.create(display_name="test_volume_attach_detach2",
+        time.sleep(10)
+        volume = self.cinder_client.volumes.create(display_name=
+                                                   "dummy",
                                                    size=1)
-
-        self.cinder.attach_volume(volume_name=volume.display_name, vm_id=server.id, mount_point="/dev/vda")
+        time.sleep(5)
+        self.cinder.attach_volume(volume_name=volume.display_name,
+                                  vm_id=server.id, mount_point="/dev/vda")
         time.sleep(10)
         self.cinder.detach_volume(volume.display_name)
-
-        assert volume.status != 'in-use'
+        time.sleep(10)
+        self.assertEqual(volume.status, 'available')
         self.cinder_client.volumes.delete(volume=volume)
-
-    def test_find_vm(self):
-        pass
+        server.delete()
 
 if __name__ == '__main__':
     unittest.main()
